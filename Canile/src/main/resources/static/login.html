@@ -1,109 +1,92 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Canile</title>
-
-  <!-- Font & basic style -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-
   <style>
     * {
-        box-sizing: border-box;
-        font-family: 'Inter', sans-serif;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
     }
-
     body {
-        margin: 0;
-        padding: 0;
-        height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, #74b9ff, #0984e3);
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #74b9ff, #0984e3);
     }
-
     .login-container {
-        background-color: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.2);
-        padding: 40px 50px;
-        width: 100%;
-        max-width: 400px;
-        text-align: center;
+      background-color: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.2);
+      padding: 40px 50px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
     }
-
     h2 {
-        margin-bottom: 24px;
-        color: #2d3436;
+      margin-bottom: 24px;
+      color: #2d3436;
     }
-
     .input-group {
-        margin-bottom: 18px;
-        text-align: left;
+      margin-bottom: 18px;
+      text-align: left;
     }
-
     label {
-        display: block;
-        font-size: 0.9rem;
-        margin-bottom: 6px;
-        color: #636e72;
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      color: #636e72;
     }
-
     input {
-        width: 100%;
-        padding: 10px 12px;
-        font-size: 1rem;
-        border: 1px solid #dfe6e9;
-        border-radius: 8px;
-        transition: border-color 0.2s;
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 1rem;
+      border: 1px solid #dfe6e9;
+      border-radius: 8px;
+      transition: border-color 0.2s;
     }
-
     input:focus {
-        border-color: #0984e3;
-        outline: none;
+      border-color: #0984e3;
+      outline: none;
     }
-
     button {
-        width: 100%;
-        padding: 12px;
-        background-color: #0984e3;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: background 0.2s;
+      width: 100%;
+      padding: 12px;
+      background-color: #0984e3;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
     }
-
     button:hover {
-        background-color: #74b9ff;
+      background-color: #74b9ff;
     }
-
     .error {
-        color: #d63031;
-        font-size: 0.9rem;
-        margin-top: 10px;
+      color: #d63031;
+      font-size: 0.9rem;
+      margin-top: 10px;
     }
-
     .footer {
-        margin-top: 20px;
-        font-size: 0.85rem;
-        color: #636e72;
+      margin-top: 20px;
+      font-size: 0.85rem;
+      color: #636e72;
     }
-
     .footer a {
-        color: #0984e3;
-        text-decoration: none;
+      color: #0984e3;
+      text-decoration: none;
     }
-
     .footer a:hover {
-        text-decoration: underline;
+      text-decoration: underline;
     }
   </style>
 </head>
-
 <body>
 <div class="login-container">
   <h2>Accesso Canile</h2>
@@ -112,24 +95,22 @@
       <label for="username">Username</label>
       <input type="text" id="username" name="username" required>
     </div>
-
     <div class="input-group">
       <label for="password">Password</label>
       <input type="password" id="password" name="password" required>
     </div>
-
     <button type="submit">Accedi</button>
-
-    <!-- opzionale: messaggio di errore -->
-    <div class="error">
-      <!-- Spring può mostrare un errore qui se ?error è presente nella URL -->
-      <!-- Esempio: <p>Credenziali non valide</p> -->
-    </div>
-
+    <div class="error" id="error-message"></div>
     <div class="footer">
       <p>Non hai un account? <a href="/register">Registrati</a></p>
     </div>
   </form>
 </div>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("error")) {
+    document.getElementById("error-message").innerText = "Credenziali non valide";
+  }
+</script>
 </body>
 </html>

@@ -20,8 +20,19 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        System.out.println("Tentativo di login per: " + username);
+
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> {
+                    System.out.println("Utente non trovato: " + username);
+                    return new UsernameNotFoundException("User not found");
+                });
+
+        System.out.println("Utente trovato: " + user.getUsername());
+        System.out.println("Password criptata: " + user.getPassword());
+        System.out.println("Ruoli associati: " + user.getRoles().stream()
+                .map(role -> role.getName())
+                .collect(Collectors.joining(", ")));
 
         List<SimpleGrantedAuthority> authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName()))

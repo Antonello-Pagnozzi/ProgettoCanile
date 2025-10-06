@@ -15,17 +15,22 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/", "/login.html", "/public/**").permitAll()
+                        .requestMatchers("/index.html").hasRole("ADMIN")
+                        .requestMatchers("/public.html").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/login.html", "/css/**", "/js/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login.html")
-                        .defaultSuccessUrl("/", true)
+                        .defaultSuccessUrl("/default", true) // reindirizza a un controller
                         .permitAll()
                 )
-                .logout(logout -> logout.permitAll());
+                .logout(
+                        logout -> logout
+                                .logoutSuccessUrl("/logout.html")
+                                .permitAll()
+                );
+
 
         return http.build();
     }
