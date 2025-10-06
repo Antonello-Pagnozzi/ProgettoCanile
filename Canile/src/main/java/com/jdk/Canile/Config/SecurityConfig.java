@@ -13,18 +13,31 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
+                .csrf().disable() //disabilitare csrf per test
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/index.html").hasRole("ADMIN")
+                        .requestMatchers("/cane.html").hasRole("ADMIN")
+                        .requestMatchers("/aggiungiPadrone.html").hasRole("ADMIN")
+                        .requestMatchers("/indexPadroni.html").hasRole("ADMIN")
+                        .requestMatchers("/padrone.html").hasRole("ADMIN")
+                        .requestMatchers("/pratiche.html").hasRole("ADMIN")
                         .requestMatchers("/public.html").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/login.html", "/css/**", "/js/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-                        .loginPage("/login.html")
-                        .defaultSuccessUrl("/default", true) // reindirizza a un controller
+                        .loginPage("/login.html") // tua pagina personalizzata
+                        .loginProcessingUrl("/login") // dove il form invia i dati
+                        .defaultSuccessUrl("/default", true) // dove reindirizzare dopo login
+                        .failureUrl("/login.html?error") // dove reindirizzare in caso di errore
                         .permitAll()
                 )
+                .logout(logout -> logout
+                        .logoutSuccessUrl("/logout.html")
+                        .permitAll())
+
                 .logout(
                         logout -> logout
                                 .logoutSuccessUrl("/logout.html")
