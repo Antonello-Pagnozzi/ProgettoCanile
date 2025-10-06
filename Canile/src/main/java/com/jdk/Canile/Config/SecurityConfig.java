@@ -11,39 +11,48 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class SecurityConfig {
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                .csrf().disable() //disabilitare csrf per test
+                .csrf().disable() // disabilitato per test
+
+                // Configurazione autorizzazioni
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/index.html").hasRole("ADMIN")
-                        .requestMatchers("/cane.html").hasRole("ADMIN")
-                        .requestMatchers("/aggiungiPadrone.html").hasRole("ADMIN")
-                        .requestMatchers("/indexPadroni.html").hasRole("ADMIN")
-                        .requestMatchers("/padrone.html").hasRole("ADMIN")
-                        .requestMatchers("/pratiche.html").hasRole("ADMIN")
+                        .requestMatchers(
+                                "/index.html",
+                                "/cane.html",
+                                "/aggiungiPadrone.html",
+                                "/indexPadroni.html",
+                                "/padrone.html",
+                                "/pratiche.html"
+                        ).hasRole("ADMIN")
                         .requestMatchers("/public.html").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/login.html", "/css/**", "/js/**").permitAll()
                         .anyRequest().authenticated()
                 )
+
+                // Gestione accesso negato
+                .exceptionHandling(ex -> ex
+                        .accessDeniedPage("/403.html")
+                )
+
+                // Login personalizzato
                 .formLogin(form -> form
-                        .loginPage("/login.html") // tua pagina personalizzata
-                        .loginProcessingUrl("/login") // dove il form invia i dati
-                        .defaultSuccessUrl("/default", true) // dove reindirizzare dopo login
-                        .failureUrl("/login.html?error") // dove reindirizzare in caso di errore
+                        .loginPage("/login.html")
+                        .loginProcessingUrl("/login")
+                        .defaultSuccessUrl("/default", true)
+                        .failureUrl("/login.html?error")
                         .permitAll()
                 )
+
+                // Logout con redirect al login con messaggio
                 .logout(logout -> logout
-                        .logoutSuccessUrl("/logout.html")
-                        .permitAll())
-
-                .logout(
-                        logout -> logout
-                                .logoutSuccessUrl("/logout.html")
-                                .permitAll()
+                        .logoutUrl("/logout")               // endpoint POST
+                        .logoutSuccessUrl("/login.html?logout") // redirect dopo logout
+                        .permitAll()
                 );
-
 
         return http.build();
     }

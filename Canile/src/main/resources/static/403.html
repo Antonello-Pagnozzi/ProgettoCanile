@@ -8,6 +8,10 @@
 <body>
 <h1>403 - Accesso Negato</h1>
 <p>Non sei autorizzato a visualizzare questa pagina.</p>
-<button onclick="window.location.href='public.html'">Vai alla pagina pubblica</button>
+<button onclick="window.location.href='public.html'">Vai alla login</button>
+<!-- Logout corretto con POST, gestito da Spring Security -->
+<form method="post" action="/logout" style="display:inline;">
+  <button type="submit">Logout</button>
+</form>
 </body>
 </html>

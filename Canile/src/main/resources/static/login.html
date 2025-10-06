@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Canile</title>
+  <link rel="stylesheet" href="/css/style.css">
   <style>
     * {
       box-sizing: border-box;
@@ -17,7 +18,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #74b9ff, #0984e3);
+
     }
     .login-container {
       background-color: white;
@@ -89,7 +90,7 @@
 </head>
 <body>
 <div class="login-container">
-  <h2>Accesso Canile</h2>
+  <h2>Casa Lunetta - Login</h2>
   <form method="post" action="/login">
     <div class="input-group">
       <label for="username">Username</label>
@@ -105,11 +106,20 @@
       <p>Non hai un account? <a href="/register">Registrati</a></p>
     </div>
   </form>
+  <div id="logoutMsg" style="color:green; margin-bottom:10px;">
+    <!-- JS leggero per leggere il parametro ?logout -->
+  </div>
 </div>
 <script>
   const params = new URLSearchParams(window.location.search);
   if (params.has("error")) {
     document.getElementById("error-message").innerText = "Credenziali non valide";
+  }
+</script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('logout')) {
+      document.getElementById('logoutMsg').textContent = 'Sei uscito con successo.';
   }
 </script>
 </body>
