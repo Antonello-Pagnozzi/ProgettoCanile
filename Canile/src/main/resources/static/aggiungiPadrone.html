@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Seleziona Padrone</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 80%; margin: 0 auto; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        button { padding: 5px 10px; margin: 2px; cursor: pointer; }
+        .hidden { display: none; }
+        label { display: block; margin-top: 10px; }
+        input { padding: 5px; width: 200px; }
+        .error { color: red; margin-top: 10px; text-align: center; }
+        .btn-container { text-align: center; margin-top: 20px; }
+    </style>
+</head>
+<body>
+<h1>Seleziona un Padrone per il cane</h1>
+
+<table id="padroniTable">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Nome e Cognome</th>
+        <th>Codice Fiscale</th>
+        <th>Numero Telefono</th>
+        <th>Azioni</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Lista padroni sarà inserita qui -->
+    </tbody>
+</table>
+
+<div class="btn-container">
+    <button id="mostraFormBtn">Inserisci nuovo padrone</button>
+    <button id="tornaBtn">Torna alla lista cani</button>
+</div>
+
+<div id="nuovoPadroneForm" class="hidden">
+    <h2>Nuovo Padrone</h2>
+    <label>Nome e Cognome: <input type="text" id="nomeCognome"></label>
+    <label>Codice Fiscale: <input type="text" id="codiceFiscale"></label>
+    <label>Numero Telefono: <input type="text" id="numeroTelefono"></label>
+    <button id="salvaBtn">Salva e assegna al cane</button>
+</div>
+
+<div id="errorMsg" class="error"></div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const idCane = params.get('idCane');
+
+    // Mostra il form per nuovo padrone
+    document.getElementById('mostraFormBtn').addEventListener('click', () => {
+        document.getElementById('nuovoPadroneForm').classList.remove('hidden');
+    });
+
+    // Torna alla lista cani
+    document.getElementById('tornaBtn').addEventListener('click', () => {
+        window.location.href = 'index.html';
+    });
+
+    // Carica padroni dal DB
+    async function caricaPadroni() {
+        try {
+            const response = await fetch('http://localhost:8080/padroni');
+            if (!response.ok) throw new Error("Errore nel caricamento dei padroni");
+            const padroni = await response.json();
+
+            const tbody = document.querySelector("#padroniTable tbody");
+            tbody.innerHTML = "";
+
+            padroni.forEach(p => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${p.id}</td>
+                    <td>${p.nomeCognome}</td>
+                    <td>${p.codiceFiscale}</td>
+                    <td>${p.numeroTelefono || "N/A"}</td>
+                    <td><button onclick="selezionaPadrone(${p.id})">Seleziona</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+        } catch (err) {
+            document.getElementById('errorMsg').textContent = err.message;
+        }
+    }
+
+    // Associa il cane al padrone selezionato
+    async function selezionaPadrone(padroneId) {
+        try {
+            const response = await fetch(`http://localhost:8080/padroni/aggiungi/${padroneId}/cane/${idCane}`, {
+                method: 'PUT'
+            });
+            if (!response.ok) throw new Error("Errore durante l'assegnazione del cane al padrone");
+            alert("Cane assegnato con successo!");
+            window.location.href = 'index.html';
+        } catch (err) {
+            document.getElementById('errorMsg').textContent = err.message;
+        }
+    }
+
+    // Salva nuovo padrone e assegna cane
+    async function salvaNuovoPadrone() {
+        const nuovoPadrone = {
+            nomeCognome: document.getElementById('nomeCognome').value,
+            codiceFiscale: document.getElementById('codiceFiscale').value,
+            numeroTelefono: document.getElementById('numeroTelefono').value
+        };
+
+        try {
+            // Creazione nuovo padrone
+            const responseSalva = await fetch('http://localhost:8080/padroni/salva', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(nuovoPadrone)
+            });
+            if (!responseSalva.ok) throw new Error("Errore durante la creazione del padrone");
+
+            const padroneCreato = await responseSalva.json();
+
+            // Associa cane
+            const responseAssegna = await fetch(`http://localhost:8080/padroni/aggiungi/${padroneCreato.id}/cane/${idCane}`, {
+                method: 'PUT'
+            });
+            if (!responseAssegna.ok) throw new Error("Errore durante l'assegnazione del cane");
+
+            alert("Padrone creato e cane assegnato con successo!");
+            window.location.href = 'index.html';
+
+        } catch (err) {
+            document.getElementById('errorMsg').textContent = err.message;
+        }
+    }
+
+    document.getElementById('salvaBtn').addEventListener('click', salvaNuovoPadrone);
+
+    caricaPadroni();
+</script>
+</body>
+<footer>
+    © 2025 Casa Lunetta - P.IVA 12345678901 - Tutti i diritti riservati<br>
+    Roma(RM) - Via della Magliana Nuova, 265 - 00146<br>
+    tel: +39 3892518242 mail: casa.lunetta@gmail.com
+</footer>
+</html>

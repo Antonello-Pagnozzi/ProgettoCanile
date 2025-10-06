@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Dettagli Padrone</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 50%; margin: 0 auto; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { width: 150px; }
+        h1 { text-align: center; margin-bottom: 20px; }
+        button { padding: 5px 10px; margin-top: 20px; display: block; margin-left: auto; margin-right: auto; cursor: pointer; }
+    </style>
+</head>
+<body>
+<h1>Dettagli Padrone</h1>
+
+<table>
+    <tr>
+        <th>ID</th>
+        <td id="padroneId"></td>
+    </tr>
+    <tr>
+        <th>Nome e Cognome</th>
+        <td id="padroneNomeCognome"></td>
+    </tr>
+    <tr>
+        <th>Codice Fiscale</th>
+        <td id="padroneCodiceFiscale"></td>
+    </tr>
+    <tr>
+        <th>Numero Telefono</th>
+        <td id="padroneNumeroTelefono"></td>
+    </tr>
+</table>
+
+<h2 style="text-align:center; margin-top:30px;">Cani posseduti</h2>
+<table id="caniTable">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Razza</th>
+        <th>Sesso</th>
+        <th>Taglia</th>
+        <th>Azioni</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Lista dei cani -->
+    </tbody>
+</table>
+
+<button id="tornaBtn">Torna alla pagina principale</button>
+<a href="indexPadroni.html" style="text-decoration: none;"><button type="button">Vai alla lista Padroni</button></a>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const idPadrone = params.get('id');
+
+    document.getElementById('tornaBtn').addEventListener('click', () => {
+        window.location.href = 'index.html';
+    });
+
+    async function caricaPadrone() {
+        try {
+            const response = await fetch(`http://localhost:8080/padroni/${idPadrone}`);
+            if (!response.ok) throw new Error("Errore nel caricamento del padrone");
+            const padrone = await response.json();
+
+            document.getElementById('padroneId').textContent = padrone.id;
+            document.getElementById('padroneNomeCognome').textContent = padrone.nomeCognome;
+            document.getElementById('padroneCodiceFiscale').textContent = padrone.codiceFiscale;
+            document.getElementById('padroneNumeroTelefono').textContent = padrone.numeroTelefono || "N/A";
+
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+
+    async function caricaCaniDelPadrone() {
+        try {
+            const response = await fetch(`http://localhost:8080/padroni/cani/${idPadrone}`);
+            if (!response.ok) throw new Error("Errore nel caricamento dei cani del padrone");
+            const padroniDTO = await response.json();
+
+            const tbody = document.querySelector("#caniTable tbody");
+            tbody.innerHTML = "";
+
+            if (padroniDTO.length === 0) {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td colspan="6" style="text-align:center;">Nessun cane associato</td>`;
+                tbody.appendChild(row);
+                return;
+            }
+
+            // DTO contiene lista dei padroni con i rispettivi cani
+            const padroni = padroniDTO[0]; // assume un solo padrone per ID
+            if (padroni.cani && padroni.cani.length > 0) {
+                padroni.cani.forEach(cane => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${cane.id}</td>
+                        <td>${cane.nome}</td>
+                        <td>${cane.razza}</td>
+                        <td>${cane.sesso}</td>
+                        <td>${cane.taglia}</td>
+                        <td><button onclick="vaiDettagliCane(${cane.id})">Dettagli</button></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+
+    function vaiDettagliCane(id) {
+        window.location.href = `cane.html?id=${id}`;
+    }
+
+    caricaPadrone();
+    caricaCaniDelPadrone();
+</script>
+</body>
+<footer>
+    © 2025 Casa Lunetta - P.IVA 12345678901 - Tutti i diritti riservati<br>
+    Roma(RM) - Via della Magliana Nuova, 265 - 00146<br>
+    tel: +39 3892518242 mail: casa.lunetta@gmail.com
+</footer>
+</html>

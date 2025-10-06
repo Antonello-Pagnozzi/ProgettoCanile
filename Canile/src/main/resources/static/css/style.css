@@ -1,0 +1,43 @@
+
+body {
+  background-image: url('../images/Designer.png');
+  background-repeat: no-repeat;
+  background-position: bottom left;
+  background-size: cover;
+  background-attachment: fixed;
+  background-color: #f5f5dc;
+}
+
+
+td, th {
+  background-color: rgba(255, 255, 255, 0.6); /* bianco con 60% opacità */
+}
+
+
+button {
+  background-color: #007bff; /* blu */
+  color: white;              /* testo bianco */
+  border: none;              /* nessun bordo */
+  padding: 10px 20px;        /* spazio interno */
+  border-radius: 5px;        /* angoli arrotondati */
+  cursor: pointer;           /* cursore a mano */
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #0056b3; /* blu più scuro al passaggio del mouse */
+}
+
+
+footer {
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.7); /* sfondo semi-trasparente */
+  color: #333;
+  text-align: center;
+  padding: 10px 0;
+  font-size: 14px;
+  font-family: sans-serif;
+  z-index: 1000;
+}

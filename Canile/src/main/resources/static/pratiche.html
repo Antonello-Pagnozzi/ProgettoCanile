@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestione Pratiche</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        form { margin-bottom: 30px; }
+        label { display: block; margin-top: 10px; }
+        select, input[type="text"], button { padding: 5px; margin-top: 5px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        .hidden { display: none; }
+        button { cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<h1>Gestione Pratiche</h1>
+
+<form id="formPratica">
+    <label>Tipo Pratica:
+        <select id="tipoPratica">
+            <option value="">-- Seleziona --</option>
+            <option value="ADOZIONE">ADOZIONE</option>
+            <option value="RESTITUZIONE">RESTITUZIONE</option>
+            <option value="RITROVAMENTO">RITROVAMENTO</option>
+        </select>
+    </label>
+
+    <label id="caneLabel">Cane:
+        <select id="caneSelect"></select>
+    </label>
+
+    <div id="padroneDiv">
+        <label>Padrone:
+            <select id="padroneSelect"></select>
+        </label>
+    </div>
+
+    <div id="nuovoPadroneDiv" class="hidden">
+        <label>Nome e Cognome:
+            <input type="text" id="nomeCognome">
+        </label>
+        <label>Codice Fiscale:
+            <input type="text" id="codiceFiscale">
+        </label>
+        <label>Numero Telefono:
+            <input type="text" id="numeroTelefono">
+        </label>
+    </div>
+
+    <div id="nuovoCaneDiv" class="hidden">
+        <label>Nome:
+            <input type="text" id="nomeCane">
+        </label>
+        <label>Razza:
+            <input type="text" id="razzaCane">
+        </label>
+        <label>Taglia:
+            <select id="tagliaCane">
+                <option value="">-- Seleziona --</option>
+                <option value="PICCOLA">Piccola</option>
+                <option value="MEDIA">Media</option>
+                <option value="GRANDE">Grande</option>
+            </select>
+        </label>
+        <label>Sesso:
+            <select id="sessoCane">
+                <option value="">-- Seleziona --</option>
+                <option value="MASCHIO">Maschio</option>
+                <option value="FEMMINA">Femmina</option>
+            </select>
+        </label>
+    </div>
+
+    <button type="button" id="salvaPratica">Salva Pratica</button>
+    <button type="button" onclick="window.location.href='index.html'">Torna alla Home</button>
+</form>
+
+<h2>Elenco Pratiche</h2>
+<table id="tabellaPratiche">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Tipo</th>
+        <th>Cane</th>
+        <th>Padrone</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const BASE_URL = 'http://localhost:8080';
+
+        const tipoSelect = document.getElementById('tipoPratica');
+        const caneSelect = document.getElementById('caneSelect');
+        const padroneSelect = document.getElementById('padroneSelect');
+        const padroneDiv = document.getElementById('padroneDiv');
+        const nuovoPadroneDiv = document.getElementById('nuovoPadroneDiv');
+        const nuovoCaneDiv = document.getElementById('nuovoCaneDiv');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const caneIdParam = urlParams.get('caneId');
+        const tipoParam = urlParams.get('tipo');
+
+        // Preimposta tipoPratica dall'URL prima di caricare i cani
+        if (tipoParam) tipoSelect.value = tipoParam;
+
+        function caricaCani(selezionaCaneId = null) {
+            fetch(`${BASE_URL}/cani`)
+                .then(res => res.json())
+                .then(data => {
+                    const tipo = tipoSelect.value;
+                    caneSelect.innerHTML = '<option value="">-- Seleziona --</option>';
+
+                    let caniFiltrati = data;
+                    if (tipo === 'RESTITUZIONE') {
+                        caniFiltrati = data.filter(c => c.adottato);
+                    } else if (tipo === 'ADOZIONE') {
+                        caniFiltrati = data.filter(c => !c.adottato);
+                    }
+
+                    caniFiltrati.forEach(c => {
+                        const option = document.createElement('option');
+                        option.value = c.id;
+                        option.textContent = c.nome;
+                        option.dataset.padrone = c.padrone ? c.padrone.nomeCognome : '';
+                        caneSelect.appendChild(option);
+                    });
+
+                    if (selezionaCaneId) {
+                        caneSelect.value = selezionaCaneId;
+                        if (tipo === 'RESTITUZIONE') {
+                            const selectedOption = caneSelect.selectedOptions[0];
+                            const padroneNome = selectedOption.dataset.padrone || '-';
+                            padroneSelect.innerHTML = '';
+                            const opt = document.createElement('option');
+                            opt.textContent = padroneNome;
+                            padroneSelect.appendChild(opt);
+                        }
+                    }
+                })
+                .catch(err => console.error('Errore nel caricamento cani:', err));
+        }
+
+        function caricaPadroni() {
+            fetch(`${BASE_URL}/padroni`)
+                .then(res => res.json())
+                .then(data => {
+                    padroneSelect.innerHTML = '<option value="">-- Seleziona --</option>';
+                    data.forEach(p => {
+                        const option = document.createElement('option');
+                        option.value = p.id;
+                        option.textContent = p.nomeCognome;
+                        padroneSelect.appendChild(option);
+                    });
+                    const optionNuovo = document.createElement('option');
+                    optionNuovo.value = 'nuovo';
+                    optionNuovo.textContent = '-- Nuovo Padrone --';
+                    padroneSelect.appendChild(optionNuovo);
+                })
+                .catch(err => console.error('Errore nel caricamento padroni:', err));
+        }
+
+        function caricaPratiche() {
+            fetch(`${BASE_URL}/pratiche`)
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.querySelector('#tabellaPratiche tbody');
+                    tbody.innerHTML = '';
+                    data.forEach(p => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${p.id}</td>
+                            <td>${p.tipo}</td>
+                            <td>${p.cane ? p.cane.nome : '-'}</td>
+                            <td>${p.padrone ? p.padrone.nomeCognome : (p.cane && p.cane.padrone ? p.cane.padrone.nomeCognome : '-')}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(err => console.error('Errore nel caricamento pratiche:', err));
+        }
+
+        tipoSelect.addEventListener('change', () => {
+            const tipo = tipoSelect.value;
+
+            nuovoPadroneDiv.classList.add('hidden');
+            nuovoCaneDiv.classList.add('hidden');
+            padroneDiv.style.display = 'block';
+            caneSelect.disabled = false;
+
+            if (tipo === 'RITROVAMENTO') {
+                caneSelect.innerHTML = '';
+                caneSelect.disabled = true;
+                padroneDiv.style.display = 'none';
+                nuovoCaneDiv.classList.remove('hidden');
+            } else {
+                caricaCani(caneIdParam);
+                if (tipo === 'ADOZIONE') caricaPadroni();
+            }
+        });
+
+        caneSelect.addEventListener('change', () => {
+            if ((tipoSelect.value || tipoParam) === 'RESTITUZIONE') {
+                const option = caneSelect.selectedOptions[0];
+                const padroneNome = option ? option.dataset.padrone : '';
+                padroneSelect.innerHTML = '';
+                const opt = document.createElement('option');
+                opt.textContent = padroneNome || '-';
+                padroneSelect.appendChild(opt);
+            }
+        });
+
+        padroneSelect.addEventListener('change', () => {
+            if ((tipoSelect.value || tipoParam) === 'ADOZIONE' && padroneSelect.value === 'nuovo') {
+                nuovoPadroneDiv.classList.remove('hidden');
+            } else {
+                nuovoPadroneDiv.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('salvaPratica').addEventListener('click', () => {
+            const tipo = tipoSelect.value || tipoParam;
+            let payload = { tipo: tipo };
+
+            if (tipo === 'ADOZIONE' || tipo === 'RESTITUZIONE') {
+                const caneId = caneSelect.value;
+                const padroneId = padroneSelect.value;
+
+                if (!caneId || (tipo === 'ADOZIONE' && padroneId === 'nuovo' && !document.getElementById('nomeCognome').value)) {
+                    alert('Compila tutti i campi richiesti!');
+                    return;
+                }
+
+                payload.cane = { id: caneId };
+                if (tipo === 'ADOZIONE') {
+                    if (padroneId === 'nuovo') {
+                        payload.padrone = {
+                            nomeCognome: document.getElementById('nomeCognome').value,
+                            codiceFiscale: document.getElementById('codiceFiscale').value,
+                            numeroTelefono: document.getElementById('numeroTelefono').value
+                        };
+                    } else {
+                        payload.padrone = { id: padroneId };
+                    }
+                } else if (tipo === 'RESTITUZIONE') {
+                    payload.padrone = { id: padroneId };
+                }
+            } else if (tipo === 'RITROVAMENTO') {
+                const nome = document.getElementById('nomeCane').value;
+                const razza = document.getElementById('razzaCane').value;
+                const taglia = document.getElementById('tagliaCane').value;
+                const sesso = document.getElementById('sessoCane').value;
+
+                if (!nome || !razza || !taglia || !sesso) {
+                    alert('Compila tutti i campi del nuovo cane!');
+                    return;
+                }
+
+                payload.cane = { nome, razza, taglia, sesso };
+            }
+
+            fetch(`${BASE_URL}/pratiche/salva`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Errore nel salvataggio della pratica');
+                return res.json();
+            })
+            .then(data => {
+                alert('Pratica salvata correttamente!');
+                tipoSelect.value = '';
+                caneSelect.value = '';
+                padroneSelect.value = '';
+                document.getElementById('nomeCognome').value = '';
+                document.getElementById('codiceFiscale').value = '';
+                document.getElementById('numeroTelefono').value = '';
+                document.getElementById('nomeCane').value = '';
+                document.getElementById('razzaCane').value = '';
+                document.getElementById('tagliaCane').value = '';
+                document.getElementById('sessoCane').value = '';
+                nuovoPadroneDiv.classList.add('hidden');
+                nuovoCaneDiv.classList.add('hidden');
+                padroneDiv.style.display = 'block';
+                caneSelect.disabled = false;
+                caricaCani();
+                caricaPadroni();
+                caricaPratiche();
+            })
+            .catch(err => {
+                alert('Errore nel salvataggio della pratica');
+                console.error(err);
+            });
+        });
+
+        // Caricamento iniziale
+        caricaCani(caneIdParam);
+        if (tipoParam === 'ADOZIONE') caricaPadroni();
+        caricaPratiche();
+    });
+</script>
+
+</body>
+<footer>
+    © 2025 Casa Lunetta - P.IVA 12345678901 - Tutti i diritti riservati<br>
+    Roma(RM) - Via della Magliana Nuova, 265 - 00146<br>
+    tel: +39 3892518242 mail: casa.lunetta@gmail.com
+</footer>
+</html>

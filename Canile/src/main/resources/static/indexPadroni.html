@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Padroni</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+            background-color: #ffffff;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 95%;
+            margin: 0 auto;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            position: relative;
+        }
+
+        th .sort-arrow {
+            display: none;
+            margin-left: 5px;
+            font-size: 12px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .error {
+            color: red;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 5px 10px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        #formNuovoPadrone {
+            display: none;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid #ddd;
+            padding: 15px;
+            width: 60%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+<h1>Lista Padroni</h1>
+<button id="apriFormPadrone">Aggiungi Padrone</button>
+<button onclick="window.location.href='index.html'">Vai alla vista dei cani</button>
+
+<div id="formNuovoPadrone">
+    <h3>Nuovo Padrone</h3>
+    <label>Nome e Cognome: <input type="text" id="nuovoNomeCognome"></label><br><br>
+    <label>Codice Fiscale: <input type="text" id="nuovoCodiceFiscale"></label><br><br>
+    <label>Numero di Telefono: <input type="text" id="nuovoTelefono"></label><br><br>
+    <button id="salvaNuovoPadrone">Salva</button>
+    <button id="chiudiFormPadrone">Annulla</button>
+    <div id="erroreNuovoPadrone" style="color:red; margin-top:10px;"></div>
+</div>
+
+<table id="padroniTable">
+    <thead>
+    <tr>
+        <th>ID <span class="sort-arrow">&#8597;</span></th>
+        <th>Nome e Cognome <span class="sort-arrow">&#8597;</span></th>
+        <th>Codice Fiscale <span class="sort-arrow">&#8597;</span></th>
+        <th>Numero di Telefono <span class="sort-arrow">&#8597;</span></th>
+        <th>Azioni</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- I dati saranno inseriti qui -->
+    </tbody>
+</table>
+
+<div id="errorMsg" class="error"></div>
+
+<script>
+    let padroni = [];
+    let originalPadroni = [];
+    let sortState = {};
+
+    async function caricaPadroni() {
+        const errorDiv = document.getElementById("errorMsg");
+        try {
+            const response = await fetch('http://localhost:8080/padroni');
+            const text = await response.text();
+            if (!text) throw new Error("Risposta vuota dal server");
+
+            try {
+                padroni = JSON.parse(text);
+                originalPadroni = [...padroni]; // salvo ordine originale
+            } catch (jsonErr) {
+                throw new Error("JSON non valido: " + jsonErr.message);
+            }
+
+            disegnaTabella();
+        } catch (err) {
+            console.error("Errore nel caricamento dei padroni:", err);
+            errorDiv.textContent = "Errore nel caricamento dei padroni: " + err.message;
+        }
+    }
+
+    function disegnaTabella() {
+        const tbody = document.querySelector("#padroniTable tbody");
+        tbody.innerHTML = "";
+
+        if (!padroni || padroni.length === 0) {
+            document.getElementById("errorMsg").textContent = "Nessun padrone trovato nel database.";
+            return;
+        }
+
+        padroni.forEach(p => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${p.id}</td>
+                <td>${p.nomeCognome}</td>
+                <td>${p.codiceFiscale}</td>
+                <td>${p.numeroTelefono || ''}</td>
+                <td>
+                    <button onclick="vaiDettagli(${p.id})">Dettagli</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function vaiDettagli(id) {
+        window.location.href = `padrone.html?id=${id}`;
+    }
+
+    // --- Ordinamento colonne ---
+    const ths = document.querySelectorAll("#padroniTable th");
+    ths.forEach((th, index) => {
+        const span = th.querySelector(".sort-arrow");
+        if (!span) return;
+
+        sortState[index] = 0; // 0 = originale, 1 = asc, 2 = desc
+
+        th.addEventListener("click", () => {
+            // reset delle altre colonne
+            ths.forEach((h, i) => {
+                if (i !== index && h.querySelector(".sort-arrow")) {
+                    h.querySelector(".sort-arrow").style.display = "none";
+                    sortState[i] = 0;
+                }
+            });
+
+            sortState[index] = (sortState[index] + 1) % 3;
+
+            // gestione freccia
+            span.style.display = sortState[index] === 0 ? "none" : "inline";
+            span.textContent = sortState[index] === 1 ? "▲" : sortState[index] === 2 ? "▼" : "";
+
+            ordinaColonna(index);
+        });
+    });
+
+    function ordinaColonna(index) {
+        const keys = ["id","nomeCognome","codiceFiscale","numeroTelefono"];
+        const key = keys[index];
+
+        if (sortState[index] === 0) {
+            padroni = [...originalPadroni];
+        } else {
+            padroni.sort((a,b)=>{
+                let valA = (a[key] || "").toString().toLowerCase();
+                let valB = (b[key] || "").toString().toLowerCase();
+                if(key === "id"){ valA = a[key]; valB = b[key]; }
+                if(valA < valB) return sortState[index]===1? -1:1;
+                if(valA > valB) return sortState[index]===1? 1:-1;
+                return 0;
+            });
+        }
+
+        disegnaTabella();
+    }
+
+    // --- Form Nuovo Padrone ---
+    const formPadroneDiv = document.getElementById('formNuovoPadrone');
+    document.getElementById('apriFormPadrone').addEventListener('click', () => formPadroneDiv.style.display = 'block');
+    document.getElementById('chiudiFormPadrone').addEventListener('click', () => formPadroneDiv.style.display = 'none');
+
+    document.getElementById('salvaNuovoPadrone').addEventListener('click', async () => {
+        const nomeCognome = document.getElementById('nuovoNomeCognome').value;
+        const codiceFiscale = document.getElementById('nuovoCodiceFiscale').value;
+        const numeroTelefono = document.getElementById('nuovoTelefono').value;
+        const erroreDiv = document.getElementById('erroreNuovoPadrone');
+        erroreDiv.textContent = '';
+
+        if (!nomeCognome || !codiceFiscale) {
+            erroreDiv.textContent = 'Nome e Cognome e Codice Fiscale sono obbligatori';
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:8080/padroni/salva', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nomeCognome, codiceFiscale, numeroTelefono })
+            });
+
+            if (!response.ok) throw new Error("Errore durante il salvataggio del padrone");
+
+            formPadroneDiv.style.display = 'none';
+            caricaPadroni();
+        } catch (err) {
+            erroreDiv.textContent = err.message;
+        }
+    });
+
+    // Carica i padroni inizialmente
+    caricaPadroni();
+</script>
+</body>
+<footer>
+    © 2025 Casa Lunetta - P.IVA 12345678901 - Tutti i diritti riservati<br>
+    Roma(RM) - Via della Magliana Nuova, 265 - 00146<br>
+    tel: +39 3892518242 mail: casa.lunetta@gmail.com
+</footer>
+</html>

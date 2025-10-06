@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Dettagli Cane</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 50%; margin: 20px auto; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { width: 150px; }
+        h1, h2 { text-align: center; margin-bottom: 10px; }
+        button { padding: 5px 10px; cursor: pointer; margin: 5px; }
+        .foto { display: block; margin: 0 auto; width: 200px; height: 200px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; }
+        #cambiaFotoLink { display: block; margin: 10px auto; cursor: pointer; text-decoration: underline; color: blue; }
+    </style>
+</head>
+<body>
+<h1>Dettagli Cane</h1>
+
+<img id="fotoCane" class="foto" src="" alt="Foto del cane">
+
+<table>
+    <tr>
+        <th>ID</th>
+        <td id="caneId"></td>
+    </tr>
+    <tr>
+        <th>Nome</th>
+        <td id="caneNome"></td>
+    </tr>
+    <tr>
+        <th>Razza</th>
+        <td id="caneRazza"></td>
+    </tr>
+    <tr>
+        <th>Sesso</th>
+        <td id="caneSesso"></td>
+    </tr>
+    <tr>
+        <th>Taglia</th>
+        <td id="caneTaglia"></td>
+    </tr>
+    <tr>
+        <th>Adottato</th>
+        <td id="caneAdottato"></td>
+    </tr>
+</table>
+
+<div id="modificaCaneDiv" style="text-align:center; margin-top:10px;">
+    <button id="abilitaModificaBtn">Abilita Modifica</button>
+</div>
+
+<h2 id="titoloPadrone">Padrone</h2>
+<table id="tabellaPadrone">
+    <tr>
+        <th>Nome e Cognome</th>
+        <td id="padroneNomeCognome"></td>
+    </tr>
+    <tr>
+        <th>Codice Fiscale</th>
+        <td id="padroneCodiceFiscale"></td>
+    </tr>
+    <tr>
+        <td colspan="2" style="text-align:center;">
+            <button id="vaiDettagliPadroneBtn">Dettagli Padrone</button>
+        </td>
+    </tr>
+</table>
+
+<div id="gestionePadrone" style="text-align:center; margin-top:20px;"></div>
+
+<button id="tornaBtn">Torna alla lista cani</button>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const idCane = params.get('id');
+
+    document.getElementById('tornaBtn').addEventListener('click', () => {
+        window.location.href = 'index.html';
+    });
+
+    // --- Carica dati cane + padrone ---
+    async function caricaCane() {
+        try {
+            const response = await fetch(`http://localhost:8080/cani/${idCane}`);
+            if (!response.ok) throw new Error("Errore nel caricamento del cane");
+            const cane = await response.json();
+
+            document.getElementById('caneId').textContent = cane.id;
+            document.getElementById('caneNome').textContent = cane.nome;
+            document.getElementById('caneRazza').textContent = cane.razza;
+            document.getElementById('caneSesso').textContent = cane.sesso;
+            document.getElementById('caneTaglia').textContent = cane.taglia;
+            document.getElementById('caneAdottato').textContent = cane.adottato ? "Sì" : "No";
+            document.getElementById('fotoCane').src = cane.fotoUrl || '';
+
+            // Visualizza sempre il padrone, ma senza lista per cambiare
+            if (cane.padrone) {
+                document.getElementById('padroneNomeCognome').textContent = cane.padrone.nomeCognome;
+                document.getElementById('padroneCodiceFiscale').textContent = cane.padrone.codiceFiscale;
+                document.getElementById('vaiDettagliPadroneBtn').onclick = () => {
+                    window.location.href = `padrone.html?id=${cane.padrone.id}`;
+                };
+            }
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+
+    // --- Carica solo dati cane (senza toccare sezione padrone) ---
+    async function caricaSoloCane() {
+        try {
+            const response = await fetch(`http://localhost:8080/cani/${idCane}`);
+            if (!response.ok) throw new Error("Errore nel caricamento del cane");
+            const cane = await response.json();
+
+            document.getElementById('caneId').textContent = cane.id;
+            document.getElementById('caneNome').textContent = cane.nome;
+            document.getElementById('caneRazza').textContent = cane.razza;
+            document.getElementById('caneSesso').textContent = cane.sesso;
+            document.getElementById('caneTaglia').textContent = cane.taglia;
+            document.getElementById('caneAdottato').textContent = cane.adottato ? "Sì" : "No";
+            document.getElementById('fotoCane').src = cane.fotoUrl || '';
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+
+    // --- Modifica cane ---
+    document.getElementById('abilitaModificaBtn').addEventListener('click', () => {
+        const campi = ['caneNome', 'caneRazza', 'caneSesso', 'caneTaglia', 'caneAdottato'];
+        campi.forEach(id => {
+            const td = document.getElementById(id);
+            const valore = td.textContent;
+            let input;
+            if (id === "caneSesso") {
+                input = document.createElement('select');
+                input.innerHTML = `<option value="MASCHIO">Maschio</option><option value="FEMMINA">Femmina</option>`;
+                input.value = valore.toUpperCase();
+            } else if (id === "caneTaglia") {
+                input = document.createElement('select');
+                input.innerHTML = `<option value="PICCOLA">Piccola</option><option value="MEDIA">Media</option><option value="GRANDE">Grande</option>`;
+                input.value = valore.toUpperCase();
+            } else if (id === "caneAdottato") {
+                input = document.createElement('select');
+                input.innerHTML = `<option value="true">Sì</option><option value="false">No</option>`;
+                input.value = valore === "Sì" ? "true" : "false";
+            } else {
+                input = document.createElement('input');
+                input.type = 'text';
+                input.value = valore;
+            }
+            td.innerHTML = '';
+            td.appendChild(input);
+        });
+
+        // Link per cambiare foto
+        const divFoto = document.createElement('div');
+        divFoto.style.textAlign = 'center';
+        divFoto.style.marginTop = '10px';
+        divFoto.innerHTML = `<a href="#" id="cambiaFotoLink">Cambia Foto</a>`;
+        document.getElementById('modificaCaneDiv').parentNode.insertBefore(divFoto, document.getElementById('modificaCaneDiv'));
+
+        document.getElementById('cambiaFotoLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            const nuovaUrl = prompt("Inserisci l'URL della nuova foto:");
+            if (nuovaUrl) document.getElementById('fotoCane').src = nuovaUrl;
+        });
+
+        // Bottone Salva Modifiche
+        const divMod = document.getElementById('modificaCaneDiv');
+        divMod.innerHTML = `<button id="salvaModificheBtn">Salva Modifiche</button>`;
+
+        document.getElementById('salvaModificheBtn').addEventListener('click', async () => {
+            try {
+                const caneAggiornato = {
+                    id: idCane,
+                    nome: document.getElementById('caneNome').querySelector('input').value,
+                    razza: document.getElementById('caneRazza').querySelector('input').value,
+                    sesso: document.getElementById('caneSesso').querySelector('select').value,
+                    taglia: document.getElementById('caneTaglia').querySelector('select').value,
+                    adottato: document.getElementById('caneAdottato').querySelector('select').value === "true",
+                    fotoUrl: document.getElementById('fotoCane').src
+                };
+
+                await fetch('http://localhost:8080/cani/aggiorna', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(caneAggiornato)
+                });
+
+                alert('Modifiche salvate con successo!');
+
+                // Ricarica solo i dati cane, la sezione padrone resta invariata
+                caricaSoloCane();
+
+                divMod.innerHTML = `<button id="abilitaModificaBtn">Abilita Modifica</button>`;
+            } catch (err) {
+                alert(err.message);
+            }
+        });
+    });
+
+    // --- Avvio ---
+    caricaCane();
+</script>
+</body>
+<footer>
+    © 2025 Casa Lunetta - P.IVA 12345678901 - Tutti i diritti riservati<br>
+    Roma(RM) - Via della Magliana Nuova, 265 - 00146<br>
+    tel: +39 3892518242 mail: casa.lunetta@gmail.com
+</footer>
+</html>
