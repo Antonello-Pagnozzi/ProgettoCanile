@@ -71,9 +71,24 @@
     .mock-login-button {
       background-color: #00b894;
     }
-    .mock-login-button:hover {
-      background-color: #55efc4;
-    }
+    .google-button {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background-color: #db4437; /* colore Google rosso */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  text-align: center;
+  text-decoration: none;
+  margin-top: 10px;
+  transition: background 0.2s;
+}
+.google-button:hover {
+  background-color: #e57368;
+}
+
     .error {
       color: #d63031;
       font-size: 0.9rem;
@@ -106,6 +121,9 @@
       <input type="password" id="password" name="password" required>
     </div>
     <button type="submit">Accedi</button>
+
+    <a href="/oauth2/authorization/google" class="google-button">Login con Google</a>
+
     <div class="error" id="error-message"></div>
     <div class="footer">
       <p>Non hai un account? <a href="/register.html">Registrati</a></p>
