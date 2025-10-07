@@ -25,6 +25,7 @@ public class DataInitializer {
                 User admin = new User();
                 admin.setUsername("admin");
                 admin.setPassword(encoder.encode("admin"));
+                admin.setEmail("admin@admin.it");
                 admin.getRoles().add(adminRole);
                 userRepo.save(admin);
             }
@@ -33,6 +34,7 @@ public class DataInitializer {
                 User user = new User();
                 user.setUsername("user");
                 user.setPassword(encoder.encode("user"));
+                user.setEmail("user@user.it");
                 user.getRoles().add(userRole);
                 userRepo.save(user);
             }

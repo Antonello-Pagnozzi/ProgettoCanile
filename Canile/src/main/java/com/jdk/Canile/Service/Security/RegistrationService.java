@@ -23,9 +23,12 @@ public class RegistrationService {
     PasswordEncoder BCryptPasswordEncoder;
 
     public User registerUser(String username, String rawPassword, String email) {
-        //verifica se lo username esiste già
+        //verifica se lo username e la mail esistono già
         if (userRepository.existsByUsername(username)) {
             throw new RuntimeException("Username già esistente");
+        }
+        if (userRepository.existsByEmail(email)) {
+            throw new RuntimeException("Email già esistente");
         }
         //crea o prende ruolo se già esistente
         Role userRole = roleRepository.findByName("ROLE_USER").orElseGet(() -> roleRepository.save(new Role("ROLE_USER")));
@@ -33,7 +36,7 @@ public class RegistrationService {
         User user = new User();
         user.setUsername(username);
         user.setPassword(BCryptPasswordEncoder.encode(rawPassword));
-        //user.setEmail(email);
+        user.setEmail(email);
         user.getRoles().add(userRole); // di default
 
         return userRepository.save(user);

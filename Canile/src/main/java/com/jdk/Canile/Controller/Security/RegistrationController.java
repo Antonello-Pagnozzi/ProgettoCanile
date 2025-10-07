@@ -1,4 +1,4 @@
-package com.jdk.Canile.Controller;
+package com.jdk.Canile.Controller.Security;
 
 import com.jdk.Canile.DTO.Security.RegistrationRequest;
 import com.jdk.Canile.Service.Security.RegistrationService;

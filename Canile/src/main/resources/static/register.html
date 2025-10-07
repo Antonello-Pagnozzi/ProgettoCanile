@@ -10,7 +10,7 @@
 
 <form id="registerForm">
   <label>Username: <input type="text" name="username" required></label><br><br>
-<!--  <label>Email: <input type="email" name="email"></label><br><br>-->
+  <label>Email: <input type="email" name="email"></label><br><br>
   <label>Password: <input type="password" name="password" required></label><br><br>
   <button type="submit">Registrati</button>
 </form>
@@ -27,7 +27,7 @@
       const data = {
           username: form.username.value,
           password: form.password.value
-          //,email: form.email.value
+          ,email: form.email.value
       };
 
       const response = await fetch("/auth/register", {

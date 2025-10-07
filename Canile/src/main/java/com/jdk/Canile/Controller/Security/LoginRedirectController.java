@@ -1,4 +1,4 @@
-package com.jdk.Canile.Controller;
+package com.jdk.Canile.Controller.Security;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

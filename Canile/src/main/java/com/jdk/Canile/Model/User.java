@@ -12,6 +12,8 @@ public class User {
     private Long id;
     private String username;
     private String password;
+    @Column(unique = true, nullable = false)
+    private String email;
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Role> roles = new HashSet<>();
 
@@ -30,4 +32,7 @@ public class User {
 
     public Set<Role> getRoles() { return roles; }
     public void setRoles(Set<Role> roles) { this.roles = roles; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 }
