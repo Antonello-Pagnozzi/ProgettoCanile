@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Registrazione</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<h2>Registrazione nuovo utente</h2>
+
+<form id="registerForm">
+  <label>Username: <input type="text" name="username" required></label><br><br>
+<!--  <label>Email: <input type="email" name="email"></label><br><br>-->
+  <label>Password: <input type="password" name="password" required></label><br><br>
+  <button type="submit">Registrati</button>
+</form>
+
+<p>Hai già un account? <a href="/login.html">Torna al login</a></p>
+
+<p id="result"></p>
+
+<script>
+  document.getElementById("registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const form = e.target;
+      const data = {
+          username: form.username.value,
+          password: form.password.value
+          //,email: form.email.value
+      };
+
+      const response = await fetch("/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+      });
+
+      const resultText = await response.text();
+      document.getElementById("result").innerText = resultText;
+
+      if (response.ok) {
+          // dopo registrazione riuscita, redirect alla login
+          setTimeout(() => window.location.href = "/login.html", 1500);
+      }
+  });
+</script>
+</body>
+</html>

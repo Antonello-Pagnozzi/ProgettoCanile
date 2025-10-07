@@ -29,7 +29,10 @@ public class SecurityConfig {
                                 "/pratiche.html"
                         ).hasRole("ADMIN")
                         .requestMatchers("/public.html").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/login.html","/auth/register", "/css/**", "/js/**").permitAll()
+                        .requestMatchers("/login.html",
+                                                    "/auth/register",
+                                                    "/register.html",
+                                                    "/css/**", "/js/**").permitAll()
 
 
                         .anyRequest().authenticated()
