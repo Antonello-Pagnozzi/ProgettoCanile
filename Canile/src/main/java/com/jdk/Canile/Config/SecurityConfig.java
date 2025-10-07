@@ -29,7 +29,9 @@ public class SecurityConfig {
                                 "/pratiche.html"
                         ).hasRole("ADMIN")
                         .requestMatchers("/public.html").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/login.html", "/css/**", "/js/**").permitAll()
+                        .requestMatchers("/login.html","/auth/register", "/css/**", "/js/**").permitAll()
+
+
                         .anyRequest().authenticated()
                 )
 
