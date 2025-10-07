@@ -1,4 +1,4 @@
-package com.jdk.Canile.Model;
+package com.jdk.Canile.Entity.Security;
 
 import jakarta.persistence.*;
 import java.util.HashSet;

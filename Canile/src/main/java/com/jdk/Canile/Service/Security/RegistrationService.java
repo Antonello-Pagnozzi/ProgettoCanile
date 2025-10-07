@@ -1,12 +1,10 @@
 package com.jdk.Canile.Service.Security;
 
-import com.jdk.Canile.Model.Role;
-import com.jdk.Canile.Model.User;
+import com.jdk.Canile.Entity.Security.Role;
+import com.jdk.Canile.Entity.Security.User;
 import com.jdk.Canile.Repository.Security.RoleRepository;
 import com.jdk.Canile.Repository.Security.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 

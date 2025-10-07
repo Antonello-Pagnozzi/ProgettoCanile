@@ -1,6 +1,6 @@
 package com.jdk.Canile.Service.Security;
 
-import com.jdk.Canile.Model.User;
+import com.jdk.Canile.Entity.Security.User;
 import com.jdk.Canile.Repository.Security.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
