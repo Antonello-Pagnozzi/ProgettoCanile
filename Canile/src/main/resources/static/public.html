@@ -1,15 +1,187 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Canile - Cani Disponibili</title>
     <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Banner come nell'index */
+        #bannerCani {
+            background: linear-gradient(90deg, #00cfff, #66e0ff);
+            color: white;
+            padding: 30px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #bannerCani h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        #bannerCani p {
+            margin: 5px 0 0 0;
+            font-size: 1.2em;
+        }
+
+        /* Stile per le miniature dei cani */
+        .foto-thumb {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        /* Tabella a tutta larghezza */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
-Questa pagina è una bozza! Qua si vedrà la lista di cani adottabili.
-<form method="post" action="/logout" style="display:inline;">
+
+<!-- Banner -->
+<div id="bannerCani">
+    <h1>Benvenuto a Casa Lunetta!</h1>
+    <p>Scopri tutti i nostri amici a quattro zampe disponibili per l'adozione</p>
+</div>
+
+<!-- Logout corretto con POST -->
+<form method="post" action="/logout" style="display:inline; margin-bottom:20px;">
     <button type="submit">Logout</button>
 </form>
 
+<table id="caniTable">
+    <thead>
+    <tr>
+        <th data-field="nome">Nome <span class="sort-indicator"></span></th>
+        <th data-field="razza">Razza <span class="sort-indicator"></span></th>
+        <th data-field="sesso">Sesso <span class="sort-indicator"></span></th>
+        <th data-field="taglia">Taglia <span class="sort-indicator"></span></th>
+        <th>Foto</th>
+        <th data-field="adottato">Stato <span class="sort-indicator"></span></th>
+        <th>Azioni</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+<div id="errorMsg" class="error"></div>
+
+<script>
+    let caniOriginali = [];
+    let sortState = {};
+
+    async function caricaCani() {
+        const errorDiv = document.getElementById("errorMsg");
+        try {
+            const response = await fetch('http://localhost:8080/cani');
+            const text = await response.text();
+            if (!text) throw new Error("Risposta vuota dal server");
+            let cani;
+            try { cani = JSON.parse(text); }
+            catch (jsonErr) { throw new Error("JSON non valido: " + jsonErr.message); }
+
+            if (!Array.isArray(cani) || cani.length === 0) {
+                errorDiv.textContent = "Nessun cane trovato nel database.";
+                return;
+            }
+
+            // Filtra solo i cani NON adottati
+            cani = cani.filter(c => !c.adottato);
+
+            if (cani.length === 0) {
+                errorDiv.textContent = "Al momento non ci sono cani disponibili per l'adozione.";
+                return;
+            }
+
+            caniOriginali = cani.slice();
+            popolaTabella(cani);
+            abilitaOrdinamento();
+
+        } catch (err) {
+            console.error("Errore nel caricamento dei cani:", err);
+            errorDiv.textContent = "Errore nel caricamento dei cani: " + err.message;
+        }
+    }
+
+    function popolaTabella(cani) {
+        const tbody = document.querySelector("#caniTable tbody");
+        tbody.innerHTML = "";
+        cani.forEach(cane => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${cane.nome}</td>
+                <td>${cane.razza}</td>
+                <td>${cane.sesso}</td>
+                <td>${cane.taglia}</td>
+                <td>${cane.fotoUrl
+                        ? `<img src="${cane.fotoUrl}" class="foto-thumb" alt="Foto di ${cane.nome}">`
+                        : "N/A"}</td>
+                <td>${cane.adottato ? "Adottato" : "Disponibile"}</td>
+                <td><button onclick="vaiDettagli(${cane.id})">Dettagli cane</button></td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function vaiDettagli(id) {
+        window.location.href = `caneUser.html?id=${id}`; // nuova pagina dettagli cane
+    }
+
+    function abilitaOrdinamento() {
+        const ths = document.querySelectorAll("#caniTable th[data-field]");
+        ths.forEach(th => {
+            const field = th.dataset.field;
+            th.addEventListener('click', () => {
+                let ordine = sortState[field] || 'originale';
+                let caniDaOrdinare = caniOriginali.slice();
+                if (ordine === 'originale') {
+                    caniDaOrdinare.sort((a,b) => (a[field] > b[field]) ? 1 : -1);
+                    sortState[field] = 'asc';
+                } else if (ordine === 'asc') {
+                    caniDaOrdinare.sort((a,b) => (a[field] < b[field]) ? 1 : -1);
+                    sortState[field] = 'desc';
+                } else {
+                    caniDaOrdinare = caniOriginali.slice();
+                    sortState[field] = 'originale';
+                }
+                ths.forEach(t => {
+                    if (t.dataset.field !== field) {
+                        sortState[t.dataset.field] = 'originale';
+                        t.querySelector('.sort-indicator').textContent = '';
+                    }
+                });
+                const indicator = th.querySelector('.sort-indicator');
+                indicator.textContent = sortState[field] === 'asc' ? '▲'
+                                     : sortState[field] === 'desc' ? '▼'
+                                     : '';
+                popolaTabella(caniDaOrdinare);
+            });
+        });
+    }
+
+    caricaCani();
+</script>
+
+<footer>
+    © 2025 Casa Lunetta - P.IVA 12345678901 - Tutti i diritti riservati<br>
+    Roma(RM) - Via della Magliana Nuova, 265 - 00146<br>
+    tel: +39 3892518242 mail: casa.lunetta@gmail.com
+</footer>
 </body>
 </html>

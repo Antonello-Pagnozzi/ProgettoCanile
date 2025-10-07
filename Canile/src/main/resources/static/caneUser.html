@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Dettagli Cane</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 50%; margin: 20px auto; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { width: 150px; }
+        h1 { text-align: center; margin-bottom: 10px; }
+        button { padding: 5px 10px; cursor: pointer; margin: 5px; }
+        .foto { display: block; margin: 0 auto; width: 200px; height: 200px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; }
+        #contattaci { width: 50%; margin: 20px auto; padding: 15px; border: 1px solid #ddd; border-radius: 6px; text-align: center; background-color: #f9f9f9; }
+        #contattaci h2 { margin-top: 0; }
+    </style>
+</head>
+<body>
+<h1>Dettagli Cane</h1>
+
+<img id="fotoCane" class="foto" src="" alt="Foto del cane">
+
+<table>
+    <tr>
+        <th>Nome</th>
+        <td id="caneNome"></td>
+    </tr>
+    <tr>
+        <th>Razza</th>
+        <td id="caneRazza"></td>
+    </tr>
+    <tr>
+        <th>Sesso</th>
+        <td id="caneSesso"></td>
+    </tr>
+    <tr>
+        <th>Taglia</th>
+        <td id="caneTaglia"></td>
+    </tr>
+    <tr>
+        <th>Adottato</th>
+        <td id="caneAdottato"></td>
+    </tr>
+</table>
+
+<!-- Sezione contatti -->
+<div id="contattaci">
+    <h2>Contattaci per maggiori informazioni</h2>
+    <p>Tel: +39 3892518242</p>
+    <p>Email: <a href="mailto:casa.lunetta@gmail.com">casa.lunetta@gmail.com</a></p>
+</div>
+
+<button id="tornaBtn">Torna alla lista cani</button>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const idCane = params.get('id');
+
+    document.getElementById('tornaBtn').addEventListener('click', () => {
+        window.location.href = 'public.html';
+    });
+
+    // --- Carica dati cane ---
+    async function caricaCane() {
+        try {
+            const response = await fetch(`http://localhost:8080/cani/${idCane}`);
+            if (!response.ok) throw new Error("Errore nel caricamento del cane");
+            const cane = await response.json();
+
+            document.getElementById('caneNome').textContent = cane.nome;
+            document.getElementById('caneRazza').textContent = cane.razza;
+            document.getElementById('caneSesso').textContent = cane.sesso;
+            document.getElementById('caneTaglia').textContent = cane.taglia;
+            document.getElementById('caneAdottato').textContent = cane.adottato ? "Sì" : "No";
+            document.getElementById('fotoCane').src = cane.fotoUrl || '';
+
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+
+    caricaCane();
+</script>
+
+</body>
+<footer>
+    © 2025 Casa Lunetta - P.IVA 12345678901 - Tutti i diritti riservati<br>
+    Roma(RM) - Via della Magliana Nuova, 265 - 00146<br>
+    tel: +39 3892518242 mail: casa.lunetta@gmail.com
+</footer>
+</html>
